@@ -183,8 +183,8 @@ class ExtensionManager(
         // Use the source lang as some aren't present on the extension level.
         val availableLanguages = extensions
             .flatMap { ext ->
-                ext.sources.map { Extension.Available.Source::lang } +
-                    ext.trackers.map { Extension.Available.Tracker::lang }
+                ext.sources.map { it.lang } +
+                    ext.trackers.map { it.lang }
             }
             .distinct()
 
