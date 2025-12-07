@@ -30,12 +30,12 @@ sealed class Extension {
         override val isNsfw: Boolean,
         val pkgFactory: String?,
         val sources: List<Source>,
-        val trackers: List<Tracker>,
         val icon: Drawable?,
         val hasUpdate: Boolean = false,
         val isObsolete: Boolean = false,
         val isShared: Boolean,
         val repoUrl: String? = null,
+        val trackers: List<Tracker> = emptyList(),
     ) : Extension() {
         val type: Type
             get() = when {
@@ -53,10 +53,10 @@ sealed class Extension {
         override val lang: String,
         override val isNsfw: Boolean,
         val sources: List<Source>,
-        val trackers: List<Tracker>,
         val apkName: String,
         val iconUrl: String,
         val repoUrl: String,
+        val trackers: List<Tracker> = emptyList(),
     ) : Extension() {
 
         val type: Type
