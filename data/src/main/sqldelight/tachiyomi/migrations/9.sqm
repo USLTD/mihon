@@ -1,0 +1,2 @@
+-- Add source_url column to chapters table for tracker extension support
+ALTER TABLE chapters ADD COLUMN source_url TEXT DEFAULT NULL;

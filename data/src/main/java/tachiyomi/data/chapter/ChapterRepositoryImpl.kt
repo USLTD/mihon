@@ -29,6 +29,7 @@ class ChapterRepositoryImpl(
                         chapter.sourceOrder,
                         chapter.dateFetch,
                         chapter.dateUpload,
+                        chapter.sourceUrl,
                         chapter.version,
                     )
                     val lastInsertId = chaptersQueries.selectLastInsertedRowId().executeAsOne()
@@ -64,6 +65,7 @@ class ChapterRepositoryImpl(
                     sourceOrder = chapterUpdate.sourceOrder,
                     dateFetch = chapterUpdate.dateFetch,
                     dateUpload = chapterUpdate.dateUpload,
+                    sourceUrl = chapterUpdate.sourceUrl,
                     chapterId = chapterUpdate.id,
                     version = chapterUpdate.version,
                     isSyncing = 0,
@@ -140,6 +142,7 @@ class ChapterRepositoryImpl(
         sourceOrder: Long,
         dateFetch: Long,
         dateUpload: Long,
+        sourceUrl: String?,
         lastModifiedAt: Long,
         version: Long,
         @Suppress("UNUSED_PARAMETER")
@@ -157,6 +160,7 @@ class ChapterRepositoryImpl(
         dateUpload = dateUpload,
         chapterNumber = chapterNumber,
         scanlator = scanlator,
+        sourceUrl = sourceUrl,
         lastModifiedAt = lastModifiedAt,
         version = version,
     )
