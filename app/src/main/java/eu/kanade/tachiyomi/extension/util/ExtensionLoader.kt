@@ -49,6 +49,8 @@ internal object ExtensionLoader {
     private const val EXTENSION_FEATURE = "tachiyomi.extension"
     private const val METADATA_SOURCE_CLASS = "tachiyomi.extension.class"
     private const val METADATA_SOURCE_FACTORY = "tachiyomi.extension.factory"
+    private const val METADATA_TRACKER_CLASS = "tachiyomi.tracker.class"
+    private const val METADATA_TRACKER_FACTORY = "tachiyomi.tracker.factory"
     private const val METADATA_NSFW = "tachiyomi.extension.nsfw"
     const val LIB_VERSION_MIN = 1.4
     const val LIB_VERSION_MAX = 1.5
@@ -278,9 +280,9 @@ internal object ExtensionLoader {
             return LoadResult.Error
         }
 
-        val sources = appInfo.metaData.getString(METADATA_SOURCE_CLASS)!!
-            .split(";")
-            .map {
+        val sources = appInfo.metaData.getString(METADATA_SOURCE_CLASS)
+            ?.split(";")
+            ?.map {
                 val sourceClass = it.trim()
                 if (sourceClass.startsWith(".")) {
                     pkgInfo.packageName + sourceClass
@@ -288,7 +290,7 @@ internal object ExtensionLoader {
                     sourceClass
                 }
             }
-            .flatMap {
+            ?.flatMap {
                 try {
                     when (val obj = Class.forName(it, false, classLoader).getDeclaredConstructor().newInstance()) {
                         is Source -> listOf(obj)
@@ -299,14 +301,41 @@ internal object ExtensionLoader {
                     logcat(LogPriority.ERROR, e) { "Extension load error: $extName ($it)" }
                     return LoadResult.Error
                 }
+            } ?: emptyList()
+
+        val trackers = appInfo.metaData.getString(METADATA_TRACKER_CLASS)
+            ?.split(";")
+            ?.map {
+                val trackerClass = it.trim()
+                if (trackerClass.startsWith(".")) {
+                    pkgInfo.packageName + trackerClass
+                } else {
+                    trackerClass
+                }
             }
+            ?.flatMap {
+                try {
+                    when (val obj = Class.forName(it, false, classLoader).getDeclaredConstructor().newInstance()) {
+                        is eu.kanade.tachiyomi.tracker.Tracker -> listOf(obj)
+                        is eu.kanade.tachiyomi.tracker.TrackerFactory -> obj.createTrackers()
+                        else -> throw Exception("Unknown tracker class type: ${obj.javaClass}")
+                    }
+                } catch (e: Throwable) {
+                    logcat(LogPriority.ERROR, e) { "Extension load error: $extName ($it)" }
+                    return LoadResult.Error
+                }
+            } ?: emptyList()
 
         val langs = sources.filterIsInstance<CatalogueSource>()
             .map { it.lang }
             .toSet()
-        val lang = when (langs.size) {
+        val trackerLangs = trackers.filterIsInstance<eu.kanade.tachiyomi.tracker.CatalogueTracker>()
+            .map { it.lang }
+            .toSet()
+        val allLangs = langs + trackerLangs
+        val lang = when (allLangs.size) {
             0 -> ""
-            1 -> langs.first()
+            1 -> allLangs.first()
             else -> "all"
         }
 
@@ -319,6 +348,7 @@ internal object ExtensionLoader {
             lang = lang,
             isNsfw = isNsfw,
             sources = sources,
+            trackers = trackers,
             pkgFactory = appInfo.metaData.getString(METADATA_SOURCE_FACTORY),
             icon = appInfo.loadIcon(pkgManager),
             isShared = extensionInfo.isShared,

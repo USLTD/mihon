@@ -1,0 +1,1 @@
+-keep class eu.kanade.tachiyomi.tracker.** { public protected *; }

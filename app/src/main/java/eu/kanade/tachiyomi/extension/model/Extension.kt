@@ -2,6 +2,7 @@ package eu.kanade.tachiyomi.extension.model
 
 import android.graphics.drawable.Drawable
 import eu.kanade.tachiyomi.source.Source
+import eu.kanade.tachiyomi.tracker.Tracker
 import tachiyomi.domain.source.model.StubSource
 
 sealed class Extension {
@@ -14,6 +15,11 @@ sealed class Extension {
     abstract val lang: String?
     abstract val isNsfw: Boolean
 
+    enum class Type {
+        SOURCE,
+        TRACKER
+    }
+
     data class Installed(
         override val name: String,
         override val pkgName: String,
@@ -24,12 +30,19 @@ sealed class Extension {
         override val isNsfw: Boolean,
         val pkgFactory: String?,
         val sources: List<Source>,
+        val trackers: List<Tracker>,
         val icon: Drawable?,
         val hasUpdate: Boolean = false,
         val isObsolete: Boolean = false,
         val isShared: Boolean,
         val repoUrl: String? = null,
-    ) : Extension()
+    ) : Extension() {
+        val type: Type
+            get() = when {
+                trackers.isNotEmpty() -> Type.TRACKER
+                else -> Type.SOURCE
+            }
+    }
 
     data class Available(
         override val name: String,
@@ -40,10 +53,17 @@ sealed class Extension {
         override val lang: String,
         override val isNsfw: Boolean,
         val sources: List<Source>,
+        val trackers: List<Tracker>,
         val apkName: String,
         val iconUrl: String,
         val repoUrl: String,
     ) : Extension() {
+
+        val type: Type
+            get() = when {
+                trackers.isNotEmpty() -> Type.TRACKER
+                else -> Type.SOURCE
+            }
 
         data class Source(
             val id: Long,
@@ -59,6 +79,12 @@ sealed class Extension {
                 )
             }
         }
+
+        data class Tracker(
+            val id: Long,
+            val lang: String,
+            val name: String,
+        )
     }
 
     data class Untrusted(
