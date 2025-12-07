@@ -124,6 +124,7 @@ internal class ExtensionApi {
                     lang = it.lang,
                     isNsfw = it.nsfw == 1,
                     sources = it.sources?.map(extensionSourceMapper).orEmpty(),
+                    trackers = it.trackers?.map(extensionTrackerMapper).orEmpty(),
                     apkName = it.apk,
                     iconUrl = "$repoUrl/icon/${it.pkg}.png",
                     repoUrl = repoUrl,
@@ -150,6 +151,7 @@ private data class ExtensionJsonObject(
     val version: String,
     val nsfw: Int,
     val sources: List<ExtensionSourceJsonObject>?,
+    val trackers: List<ExtensionTrackerJsonObject>?,
 )
 
 @Serializable
@@ -160,11 +162,26 @@ private data class ExtensionSourceJsonObject(
     val baseUrl: String,
 )
 
+@Serializable
+private data class ExtensionTrackerJsonObject(
+    val id: Long,
+    val lang: String,
+    val name: String,
+)
+
 private val extensionSourceMapper: (ExtensionSourceJsonObject) -> Extension.Available.Source = {
     Extension.Available.Source(
         id = it.id,
         lang = it.lang,
         name = it.name,
         baseUrl = it.baseUrl,
+    )
+}
+
+private val extensionTrackerMapper: (ExtensionTrackerJsonObject) -> Extension.Available.Tracker = {
+    Extension.Available.Tracker(
+        id = it.id,
+        lang = it.lang,
+        name = it.name,
     )
 }

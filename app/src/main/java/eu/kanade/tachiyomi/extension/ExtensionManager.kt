@@ -85,6 +85,13 @@ class ExtensionManager(
             ?.pkgName
     }
 
+    fun getTrackerExtensionPackage(trackerId: Long): String? {
+        return installedExtensionsFlow.value.find { extension ->
+            extension.trackers.any { it.id == trackerId }
+        }
+            ?.pkgName
+    }
+
     fun getExtensionPackageAsFlow(sourceId: Long): Flow<String?> {
         return installedExtensionsFlow.map { extensions ->
             extensions.find { extension ->
@@ -96,6 +103,15 @@ class ExtensionManager(
 
     fun getAppIconForSource(sourceId: Long): Drawable? {
         val pkgName = getExtensionPackage(sourceId) ?: return null
+
+        return iconMap[pkgName] ?: iconMap.getOrPut(pkgName) {
+            ExtensionLoader.getExtensionPackageInfoFromPkgName(context, pkgName)!!.applicationInfo!!
+                .loadIcon(context.packageManager)
+        }
+    }
+
+    fun getAppIconForTracker(trackerId: Long): Drawable? {
+        val pkgName = getTrackerExtensionPackage(trackerId) ?: return null
 
         return iconMap[pkgName] ?: iconMap.getOrPut(pkgName) {
             ExtensionLoader.getExtensionPackageInfoFromPkgName(context, pkgName)!!.applicationInfo!!
@@ -166,9 +182,11 @@ class ExtensionManager(
 
         // Use the source lang as some aren't present on the extension level.
         val availableLanguages = extensions
-            .flatMap(Extension.Available::sources)
-            .distinctBy(Extension.Available.Source::lang)
-            .map(Extension.Available.Source::lang)
+            .flatMap { ext ->
+                ext.sources.map { Extension.Available.Source::lang } +
+                    ext.trackers.map { Extension.Available.Tracker::lang }
+            }
+            .distinct()
 
         val deviceLanguage = Locale.getDefault().language
         val defaultLanguages = preferences.enabledLanguages().defaultValue()

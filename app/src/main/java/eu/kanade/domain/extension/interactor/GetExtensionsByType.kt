@@ -39,6 +39,11 @@ class GetExtensionsByType(
                         (showNsfwSources || !extension.isNsfw)
                 }
                 .flatMap { ext ->
+                    // Handle tracker extensions
+                    if (ext.trackers.isNotEmpty() && ext.sources.isEmpty()) {
+                        return@flatMap if (ext.lang in enabledLanguages) listOf(ext) else emptyList()
+                    }
+                    // Handle source extensions
                     if (ext.sources.isEmpty()) {
                         return@flatMap if (ext.lang in enabledLanguages) listOf(ext) else emptyList()
                     }
@@ -49,6 +54,7 @@ class GetExtensionsByType(
                                 lang = it.lang,
                                 pkgName = "${ext.pkgName}-${it.id}",
                                 sources = listOf(it),
+                                trackers = emptyList(),
                             )
                         }
                 }
