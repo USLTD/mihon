@@ -2,8 +2,8 @@ package eu.kanade.tachiyomi.tracker
 
 import eu.kanade.tachiyomi.tracker.model.FilterList
 import eu.kanade.tachiyomi.tracker.model.MangasPage
+import eu.kanade.tachiyomi.util.awaitSingle
 import rx.Observable
-import tachiyomi.core.common.util.lang.awaitSingle
 
 interface CatalogueTracker : Tracker {
 
